@@ -1,5 +1,6 @@
 
 # Weaving Beats
+# Erika Nesse, 2016. 
 
 import numpy as np
 from sound_functions import get_sound_data, save_wav, envelope
