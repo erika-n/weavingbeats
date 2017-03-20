@@ -5,6 +5,7 @@ import wave
 import scipy.io.wavfile as wav
 from pprint import pprint
 from scipy.special import expit
+import sys
 f = 1.0/32767
 def get_sound_data(wav_name):
 
@@ -54,15 +55,16 @@ def envelope(num, attack, decay):
         attack = num/2
         decay = num - attack -1 
 
-    start = [-0.5 + x*1.0/attack  for x in range(attack)] 
-    end = [0.5 - x*1.0/decay  for x in range(decay)]
+    start = [-6 + 12*x*1.0/attack  for x in range(int(attack))] 
+    end = [ 6 -12*x*1.0/decay  for x in range(int(decay))]
     if(num >= attack + decay):
-        mid = np.empty(num - attack - decay)
-        mid.fill(1.0)
+        mid = np.empty(int(num - attack - decay))
+        mid.fill(6.0)
         total = np.append(start, mid)
     else:
         total = start
     total = np.append(total, end)
+
     return expit(total)
 
 

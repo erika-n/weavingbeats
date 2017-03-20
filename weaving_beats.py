@@ -6,9 +6,9 @@ from sound_functions import get_sound_data, save_wav, envelope
 
 
 # settings for the fractal:
-recursion_depth = 4
-seconds = 20
-songfile = '../sounds/testsounds/found.wav'
+recursion_depth = 6
+seconds = 120
+songfile = '../../../../Fractal Music Machine/sounds/car passing and bell.wav'
 outputfile = 'weaving.wav'
 
 
@@ -16,11 +16,19 @@ outputfile = 'weaving.wav'
 # The first two numbers are the start/end location of the space transformation
 # The third is the multiplier for the note which determines the location
 # from which the sample is drawn. 
+# transformations = [
+# 	[1, 0.75, 4],
+# 	[0.5, 0, 3],
+# 	[0.75, 0.25, 7],
+# 	[0.5, 1, 2]
+# ]
+
 transformations = [
-	[0, 0.25, 4],
+	[0.75, 1, 4],
 	[0.5, 0, 3],
-	[0.75, 0.25, 7],
-	[0.5, 1, 2]
+	[0.25, 0.75, 1],
+	[0.25, 0, 1],
+	[0.75, 0.5, 1]
 ]
 
 
@@ -51,7 +59,7 @@ def weaving_beats(song, outsong, depth, start, end, note):
 	if depth <= 0:
 
 		clipstart = note*abs(width)
-		usewidth = abs(width) #min(abs(width), 50000) # uncomment to create a clipped effect
+		usewidth = min(abs(width), 50000) # uncomment to create a clipped effect
 		clipend = clipstart + usewidth
 		while (clipend >= song.shape[0]):
 
@@ -67,7 +75,7 @@ def weaving_beats(song, outsong, depth, start, end, note):
 		if(start + usewidth >= outsong.shape[0]):
 			usewidth = outsong.shape[0] - start 
 
-		outsong[int(start):int(start) + usewidth] += 0.08*clip[0:usewidth]*envelope(usewidth, 500, 1000)
+		outsong[int(start):int(start) + int(usewidth)] += 0.02*clip[0:int(usewidth)]*envelope(int(usewidth), 500, 1000)
 
 		return
 
