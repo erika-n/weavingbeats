@@ -4,87 +4,87 @@
 
 import numpy as np
 from sound_functions import get_sound_data, save_wav, envelope
+from transformations import current_transformation
+import argparse
 
 
-# settings for the fractal:
-recursion_depth = 6
-seconds = 120
-songfile = '../../../../Fractal Music Machine/sounds/car passing and bell.wav'
-outputfile = 'weaving.wav'
-
-
-# These transformations define the fractal.
-# The first two numbers are the start/end location of the space transformation
-# The third is the multiplier for the note which determines the location
-# from which the sample is drawn. 
-# transformations = [
-# 	[1, 0.75, 4],
-# 	[0.5, 0, 3],
-# 	[0.75, 0.25, 7],
-# 	[0.5, 1, 2]
-# ]
-
-transformations = [
-	[0.75, 1, 4],
-	[0.5, 0, 3],
-	[0.25, 0.75, 1],
-	[0.25, 0, 1],
-	[0.75, 0.5, 1]
-]
-
-
+# the fractal itself is defined in transformations.py
+transformations = current_transformation()
 
 def main():
 
 
-	basesong = get_sound_data(songfile)
+	basesong = get_sound_data(inputfile)
 
 	rate = 44100
+
 	newsong = np.zeros(seconds*rate,dtype=np.float32)
 	loc = newsong.shape[0]/2.0
 
 
-	weaving_beats(basesong, newsong, recursion_depth, 0, newsong.shape[0], 1)
-	save_wav(newsong, outputfile)
+	weaving_beats(basesong, newsong, recursion_depth, 0, 1, 0, 1, 0, 1)
+	newsong *= 0.5*(1.0/np.max(newsong)) #correct amplitude
+	save_wav(newsong, outputfilename + ".wav")
 
 
 
-def weaving_beats(song, outsong, depth, start, end, note):
-	width = int(end) - int(start)
-	if end >= outsong.shape[0] + width:
-		end = end % outsong.shape[0]
-	if(start < 0):
-		start = start + outsong.shape[0]
+def weaving_beats(song, outsong, depth, time1, time2, freq1, freq2, amp1, amp2):
+	twidth = time2 - time1
+	fwidth = freq2 - freq1
+	awidth = amp2 - amp1
+
 
 
 	if depth <= 0:
 
-		clipstart = note*abs(width)
-		usewidth = min(abs(width), 50000) # uncomment to create a clipped effect
-		clipend = clipstart + usewidth
-		while (clipend >= song.shape[0]):
+		#get clip by applying 
+		freq = (freq2 - freq1)/2
+		clipwidth = int(twidth*outsong.shape[0]) 
+		clipstart  =int(freq*song.shape[0])
+		clipend = clipstart + clipwidth
+		clip = song.take(range(clipstart, clipend), mode='wrap');
 
-			clipstart= clipend % song.shape[0]
-			clipend = clipstart +  usewidth
 
+		amp = (amp2 - amp1)/2
 
-		clip = song[clipstart:clipend]
+		outstart = int(time1*outsong.shape[0])
+		outend = outstart + clipwidth
+		if(outend > outsong.shape[0]):
+			outend = -1*(outend % outsong.shape[0])
 
-		cliplen = int(clip.shape[0])
-		env = 	envelope(cliplen, 500, 1000)
-
-		if(start + usewidth >= outsong.shape[0]):
-			usewidth = outsong.shape[0] - start 
-
-		outsong[int(start):int(start) + int(usewidth)] += 0.02*clip[0:int(usewidth)]*envelope(int(usewidth), 500, 1000)
-
+		env = envelope(clipwidth, 30, 30)
+		outsong[outstart:outend] += amp*clip[:]*env
 		return
 
 	for t in transformations:
-		
 
-		weaving_beats(song, outsong, depth - 1, start + width*t[0], start + width*t[1], note*t[2])
+		# apply transformation: shrink each line and move it according to the transformation, for time, frequency, and amplitude
+		weaving_beats(song, outsong, depth - 1, time1 + twidth*t[0], time1 + twidth*t[1], freq1 + fwidth*t[2], freq1 + fwidth*t[3], amp1 + awidth*t[4], amp1 + awidth*t[5])
 
 
 if __name__ == "__main__":
+
+
+
+
+	parser = argparse.ArgumentParser(description='Make a fractal from a sound file.')
+
+	parser.add_argument('-s', '--seconds',default=20,
+	                    help='seconds of music', type=int)
+	parser.add_argument('-i', '--inputfile' ,
+	                    help='input file (.wav)')
+	parser.add_argument('-o', '--outputfilename' , default = 'fractal',
+	                    help="output filename (don't add extension")
+	parser.add_argument('-d', '--depth' , default = 3, type=int,
+	           
+	                    help='fractal recursion depth (level of detail)')
+
+
+
+	args = parser.parse_args()
+	seconds = args.seconds
+	
+	inputfile = args.inputfile
+	outputfilename = args.outputfilename
+	recursion_depth = args.depth
 	main()
