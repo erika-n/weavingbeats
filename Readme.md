@@ -12,11 +12,15 @@ Edit fractal parameters in transformations.py
 python weaving_beats.py
 
   -h, --help            show this help message and exit
+  
   -s SECONDS, --seconds SECONDS
                         seconds of music
+  
   -i INPUTFILE, --inputfile INPUTFILE
                         input file (.wav)
+  
   -o OUTPUTFILENAME, --outputfilename OUTPUTFILENAME
                         output filename (don't add extension
+  
   -d DEPTH, --depth DEPTH
                         fractal recursion depth (level of detail)
